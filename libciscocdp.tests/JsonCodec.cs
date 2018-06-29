@@ -82,22 +82,15 @@ namespace libciscocdp.tests
         [Fact]
         public void DecodePacket()
         {
-            ITraceWriter traceWriter = new MemoryTraceWriter { LevelFilter = System.Diagnostics.TraceLevel.Verbose };
-
             JsonSerializerSettings serializerSettings =
                            new JsonSerializerSettings()
                            {
-                               MissingMemberHandling = MissingMemberHandling.Ignore,
-                               DateTimeZoneHandling = DateTimeZoneHandling.Utc,
-                               TraceWriter = traceWriter
                            };
 
             serializerSettings.Converters.Add(new IPAddressConverter());
             serializerSettings.Converters.Add(new IPEndPointConverter());
 
             var message = JsonConvert.DeserializeObject<CdpApiMessage>(Sample1, serializerSettings);
-
-            //throw new Exception(traceWriter.ToString());
 
             Assert.NotNull(message);
             Assert.NotNull(message.Packet);
