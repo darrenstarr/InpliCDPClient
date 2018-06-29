@@ -78,8 +78,11 @@
                                     var content = new StringContent(dataAsString);
                                     content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
 
+                                    Console.WriteLine("Preparing to send packet");
+                                    Console.WriteLine("Sending " + dataAsString);
                                     var client = new HttpClient();
                                     await client.PostAsync("http://192.168.70.1:51954/api/cdp", content);
+                                    Console.WriteLine("Data sent");
                                 }
                             }
                         },
