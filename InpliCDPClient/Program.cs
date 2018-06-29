@@ -96,12 +96,4 @@
             Console.ReadKey();
         }
     }
-
-    public class CdpApiMessage
-    {
-        public string ReceivedOn { get; set; }
-        public DateTimeOffset ReceivedAt { get; set; }
-        public string SourceMac { get; set; }
-        public CdpPacket Packet { get; set; }
-    }
 }
