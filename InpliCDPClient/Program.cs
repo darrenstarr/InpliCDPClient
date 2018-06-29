@@ -34,7 +34,8 @@
                 new JsonSerializerSettings()
                 {
                     ContractResolver = new Newtonsoft.Json.Serialization.CamelCasePropertyNamesContractResolver(),
-                    DateTimeZoneHandling = DateTimeZoneHandling.Utc
+                    DateTimeZoneHandling = DateTimeZoneHandling.Utc,
+                    NullValueHandling = NullValueHandling.Ignore
                 };
 
             serializerSettings.Converters.Add(new IPAddressConverter());
