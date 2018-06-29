@@ -30,7 +30,16 @@
                     nic
                     ;
 
-            // 
+            JsonSerializerSettings serializerSettings =
+                new JsonSerializerSettings()
+                {
+                    ContractResolver = new Newtonsoft.Json.Serialization.CamelCasePropertyNamesContractResolver(),
+                    DateTimeZoneHandling = DateTimeZoneHandling.Utc
+                };
+
+            serializerSettings.Converters.Add(new IPAddressConverter());
+            serializerSettings.Converters.Add(new IPEndPointConverter());
+
             var tasks = new List<Task>();
             foreach(var nic in ethernetInterfaces)
             {
@@ -44,32 +53,33 @@
                             while(true)
                             {
                                 var packet = llcSocket.ReceiveFrom(out PhysicalAddress remoteHost);
+                                CdpPacket parsed = null;
+
                                 try
                                 {
-                                    var parsed = CdpParser.Parse(packet);
+                                    parsed = CdpParser.Parse(packet);
                                 }
                                 catch (Exception e)
                                 {
                                     Console.WriteLine("Exception while parsing: " + e.Message);
                                 }
 
-                                if(packet != null)
+                                if(parsed != null)
                                 {
-                                    JsonSerializerSettings serializerSettings =
-                                        new JsonSerializerSettings()
-                                        {
-                                            ContractResolver = new Newtonsoft.Json.Serialization.CamelCasePropertyNamesContractResolver(),
-                                            DateTimeZoneHandling = DateTimeZoneHandling.Utc
-                                        };
+                                    var message = new CdpApiMessage
+                                    {
+                                        ReceivedOn = nic.Name,
+                                        ReceivedAt = DateTimeOffset.Now,
+                                        SourceMac = remoteHost.ToString(),
+                                        Packet = parsed
+                                    };
 
-                                    serializerSettings.Converters.Add(new IPAddressConverter());
-                                    serializerSettings.Converters.Add(new IPEndPointConverter());
-                                    var dataAsString = JsonConvert.SerializeObject(packet, serializerSettings);
+                                    var dataAsString = JsonConvert.SerializeObject(message, serializerSettings);
                                     var content = new StringContent(dataAsString);
                                     content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
 
                                     var client = new HttpClient();
-                                    await client.PostAsync("http://192.168.70.1:51954", content);
+                                    await client.PostAsync("http://192.168.70.1:51954/api/cdp", content);
                                 }
                             }
                         },
@@ -80,5 +90,13 @@
             Console.WriteLine("Press any key to exit");
             Console.ReadKey();
         }
+    }
+
+    public class CdpApiMessage
+    {
+        public string ReceivedOn { get; set; }
+        public DateTimeOffset ReceivedAt { get; set; }
+        public string SourceMac { get; set; }
+        public CdpPacket Packet { get; set; }
     }
 }
