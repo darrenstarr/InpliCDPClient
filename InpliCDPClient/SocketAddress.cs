@@ -3,6 +3,9 @@
     using System.Net.NetworkInformation;
     using System.Runtime.InteropServices;
 
+    /// <summary>
+    /// A representation of the Linux sock_addr structure
+    /// </summary>
     [StructLayout(LayoutKind.Explicit, Size = 16, Pack = 1)]
     internal unsafe struct SocketAddress
     {
@@ -10,16 +13,32 @@
         public EAddressFamily sa_family;
 
         [FieldOffset(2)]
-        public fixed byte sa_data[6];
+        public fixed byte sa_data[14];
 
-        public void SetMac(PhysicalAddress macAddress)
+        // Converts the contents of the sa_data from a byte array to a .NET PhysicalAddress
+        public PhysicalAddress MacAddress
         {
-            sa_family = EAddressFamily.Unspecified;
-            var asBytes = macAddress.GetAddressBytes();
-            fixed (SocketAddress* p = &this)
+            get
             {
-                for (var i = 0; i < 6; i++)
-                    p->sa_data[i] = asBytes[i];
+                var mac = new byte[6];
+
+                fixed (SocketAddress* p = &this)
+                {
+                    for (var i = 0; i < 6; i++)
+                        mac[i] = p->sa_data[i];
+                }
+
+                return new PhysicalAddress(mac);
+            }
+
+            set
+            {
+                var asBytes = value.GetAddressBytes();
+                fixed (SocketAddress* p = &this)
+                {
+                    for (var i = 0; i < 6; i++)
+                        p->sa_data[i] = asBytes[i];
+                }
             }
         }
     }

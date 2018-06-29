@@ -1,5 +1,8 @@
 ﻿namespace InpliCDPClient
 {
+    /// <summary>
+    /// Socket IOCTL values
+    /// </summary>
     internal enum ESocketIOCTL
     {
         // #define SIOCINQ         FIONREAD

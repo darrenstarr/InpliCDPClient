@@ -71,7 +71,7 @@ namespace libciscocdp.tests
         [Fact]
         public void ParseFull2960G()
         {
-            var parsed = CdpParser.Parse(WiresharkFrom2960G);
+            var parsed = CdpPacketParser.Parse(WiresharkFrom2960G);
             Assert.NotNull(parsed);
 
             Assert.Equal("Acc1.nocturnal.local", parsed.DeviceId);
@@ -174,7 +174,7 @@ namespace libciscocdp.tests
         [Fact]
         public void ParseFullCSR1000VIPv4()
         {
-            var parsed = CdpParser.Parse(WiresharkCSR1000VIPv4);
+            var parsed = CdpPacketParser.Parse(WiresharkCSR1000VIPv4);
             Assert.NotNull(parsed);
 
             Assert.Equal("csr.log.local", parsed.DeviceId);
@@ -267,7 +267,7 @@ namespace libciscocdp.tests
         [Fact]
         public void ParseFullCSR1000VIPv6()
         {
-            var parsed = CdpParser.Parse(WiresharkCSR1000VIPv6);
+            var parsed = CdpPacketParser.Parse(WiresharkCSR1000VIPv6);
             Assert.NotNull(parsed);
 
             Assert.Equal("csr.log.local", parsed.DeviceId);

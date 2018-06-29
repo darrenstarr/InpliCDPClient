@@ -1,5 +1,8 @@
 ﻿namespace libciscocdp
 {
+    /// <summary>
+    /// Representation of data reported by CDP about Power Over Ethernet
+    /// </summary>
     public class CdpPowerAvailable
     {
         public int RequestId { get; internal set; }

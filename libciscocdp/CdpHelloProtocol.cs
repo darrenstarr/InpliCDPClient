@@ -3,6 +3,10 @@
     using System.Net;
     using System.Net.NetworkInformation;
 
+    /// <summary>
+    /// Information provided for the CDP Hello Protocol
+    /// This is almost entirely unknown to me and all data is extracted from Wireshark dumps
+    /// </summary>
     public class CdpHelloProtocol
     {
         public int Oui { get; internal set; }

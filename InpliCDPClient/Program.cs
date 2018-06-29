@@ -57,7 +57,9 @@
 
                                 try
                                 {
-                                    parsed = CdpParser.Parse(packet);
+                                    Console.WriteLine("Parsing packet");
+                                    parsed = CdpPacketParser.Parse(packet);
+                                    Console.WriteLine("Packet parsed");
                                 }
                                 catch (Exception e)
                                 {

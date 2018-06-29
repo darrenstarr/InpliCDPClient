@@ -5,17 +5,20 @@
     using System.Net.NetworkInformation;
     using System.Text;
 
+    /// <summary>
+    /// Internal methods to extend C# byte arrays for parsing CDP packets.
+    /// </summary>
     internal static class CdpByteArrayExtensions
     {
-        public static bool Need(this byte [] buffer, int index, int bytesNeeded)
+        internal static bool Need(this byte [] buffer, int index, int bytesNeeded)
         {
             return (index + bytesNeeded) <= buffer.Length;
         }
 
-        public static int Get8(this byte[] buffer, ref int index, string operation)
+        internal static int Get8(this byte[] buffer, ref int index, string operation)
         {
             if (!buffer.Need(index, 1))
-                throw new ParserInputPastEndException(buffer, index, operation, "Input past end, needed 1 bytes");
+                throw new CdpParserInputPastEndException(buffer, index, operation, "Input past end, needed 1 bytes");
 
             var result =
                 buffer[index];
@@ -25,10 +28,10 @@
             return result;
         }
 
-        public static int Get16(this byte[] buffer, ref int index, string operation)
+        internal static int Get16(this byte[] buffer, ref int index, string operation)
         {
             if (!buffer.Need(index, 2))
-                throw new ParserInputPastEndException(buffer, index, operation, "Input past end, needed 2 bytes");
+                throw new CdpParserInputPastEndException(buffer, index, operation, "Input past end, needed 2 bytes");
 
             var result =
                 buffer[index] << 8 |
@@ -39,10 +42,10 @@
             return result;
         }
 
-        public static int Get24(this byte[] buffer, ref int index, string operation)
+        internal static int Get24(this byte[] buffer, ref int index, string operation)
         {
             if (!buffer.Need(index, 3))
-                throw new ParserInputPastEndException(buffer, index, operation, "Input past end, needed 3 bytes");
+                throw new CdpParserInputPastEndException(buffer, index, operation, "Input past end, needed 3 bytes");
 
             var result =
                 buffer[index] << 16 |
@@ -54,10 +57,10 @@
             return result;
         }
 
-        public static int Get32(this byte[] buffer, ref int index, string operation)
+        internal static int Get32(this byte[] buffer, ref int index, string operation)
         {
             if (!buffer.Need(index, 4))
-                throw new ParserInputPastEndException(buffer, index, operation, "Input past end, needed 4 bytes");
+                throw new CdpParserInputPastEndException(buffer, index, operation, "Input past end, needed 4 bytes");
 
             var result =
                 buffer[index] << 24 |
@@ -70,10 +73,10 @@
             return result;
         }
 
-        public static uint Get32U(this byte[] buffer, ref int index, string operation)
+        internal static uint Get32U(this byte[] buffer, ref int index, string operation)
         {
             if (!buffer.Need(index, 4))
-                throw new ParserInputPastEndException(buffer, index, operation, "Input past end, needed 4 bytes");
+                throw new CdpParserInputPastEndException(buffer, index, operation, "Input past end, needed 4 bytes");
 
             var result =
                 (uint)buffer[index] << 24 |
@@ -86,7 +89,7 @@
             return result;
         }
 
-        public static int GetVariableLengthInt(this byte [] buffer, ref int index, int length, string operation)
+        internal static int GetVariableLengthInt(this byte [] buffer, ref int index, int length, string operation)
         {
             switch(length)
             {
@@ -99,14 +102,14 @@
                 case 4:
                     return Get32(buffer, ref index, operation);
                 default:
-                    throw new ParserException(buffer, index, "Invalid protocol length specified");
+                    throw new CdpParserException(buffer, index, "Invalid protocol length specified");
             }
         }
 
-        public static string GetString(this byte[] buffer, ref int index, int length, string operation)
+        internal static string GetString(this byte[] buffer, ref int index, int length, string operation)
         {
             if (!buffer.Need(index, length))
-                throw new ParserInputPastEndException(buffer, index, operation, "Input past end, needed " + length.ToString() + " bytes");
+                throw new CdpParserInputPastEndException(buffer, index, operation, "Input past end, needed " + length.ToString() + " bytes");
 
             var result = Encoding.UTF8.GetString(buffer, index, length);
 
@@ -115,10 +118,10 @@
             return result;
         }
 
-        public static byte [] GetSubbuffer(this byte[] buffer, ref int index, int length, string operation)
+        internal static byte [] GetSubbuffer(this byte[] buffer, ref int index, int length, string operation)
         {
             if (!buffer.Need(index, length))
-                throw new ParserInputPastEndException(buffer, index, operation, "Input past end, needed " + length.ToString() + " bytes");
+                throw new CdpParserInputPastEndException(buffer, index, operation, "Input past end, needed " + length.ToString() + " bytes");
 
             var result = buffer.Skip(index).Take(length).ToArray();
 
@@ -127,21 +130,21 @@
             return result;
         }
 
-        public static ECdpAddressFamily GetProtocolFromSapSnap(this byte [] buffer, ref int index, int protocolLength, string operation)
+        internal static ECdpAddressFamily GetProtocolFromSapSnap(this byte [] buffer, ref int index, int protocolLength, string operation)
         {
             var dsapAddress = buffer.Get8(ref index, "Reading DSAP address");
             if (dsapAddress != 0xAA)
-                throw new ParserException(buffer, index - 1, "Header is not SNAP");
+                throw new CdpParserException(buffer, index - 1, "Header is not SNAP");
 
             var ssapAddress = buffer.Get8(ref index, "Reading SSAP address");
             if (ssapAddress != 0xAA)
-                throw new ParserException(buffer, index - 1, "Header is not SNAP");
+                throw new CdpParserException(buffer, index - 1, "Header is not SNAP");
 
             var control = buffer.Get8(ref index, "Reading control field");
 
             var oui = buffer.Get24(ref index, "Reading SNAP OUI");
             if (oui != 0x000000)
-                throw new ParserException(buffer, index - 3, "OUI is not generic");
+                throw new CdpParserException(buffer, index - 3, "OUI is not generic");
 
             var ethertype = buffer.Get16(ref index, "Reading Ethertype/PID from SNAP");
             switch(ethertype)
@@ -156,7 +159,7 @@
             return ECdpAddressFamily.Unknown;
         }
 
-        public static ECdpAddressFamily GetProtocolType(this byte [] buffer, ref int index, string operation)
+        internal static ECdpAddressFamily GetProtocolType(this byte [] buffer, ref int index, string operation)
         {
             var protocolType = Get8(buffer, ref index, "Reading protocol type");
             var protocolLength = Get8(buffer, ref index, "Reading protocol length");
@@ -182,7 +185,7 @@
             return ECdpAddressFamily.Unknown; ;
         }
 
-        public static IPAddress GetAddress(this byte [] buffer, ref int index, string operation)
+        internal static IPAddress GetAddress(this byte [] buffer, ref int index, string operation)
         {
             var protocolType = GetProtocolType(buffer, ref index, "Reading protocol type");
             var addressLength = Get16(buffer, ref index, "Reading address length");
@@ -200,7 +203,7 @@
             }
         }
 
-        public static CdpHelloProtocol GetHelloProtocol(this byte [] buffer, ref int index, string operation)
+        internal static CdpHelloProtocol GetHelloProtocol(this byte [] buffer, ref int index, string operation)
         {
             var result = new CdpHelloProtocol();
 
@@ -208,7 +211,7 @@
 
             result.ProtocolId = buffer.Get16(ref index, "Protocol ID");
             if (result.ProtocolId != 0x0112)
-                throw new ParserException(buffer, index - 2, "Unknown CDP hello protocol");
+                throw new CdpParserException(buffer, index - 2, "Unknown CDP hello protocol");
 
             result.ClusterMasterIP = new IPAddress(buffer.GetSubbuffer(ref index, 4, "Reading cluster master IP"));
 
@@ -216,11 +219,11 @@
 
             result.Version = buffer.Get8(ref index, "Reading version");
             if (result.Version != 1)
-                throw new ParserException(buffer, index - 1, "Unknown CDP hello protocol version");
+                throw new CdpParserException(buffer, index - 1, "Unknown CDP hello protocol version");
 
             result.Subversion = buffer.Get8(ref index, "Reading subversion");
             if (result.Subversion != 2)
-                throw new ParserException(buffer, index - 1, "Unknown CDP hello protocol subversion");
+                throw new CdpParserException(buffer, index - 1, "Unknown CDP hello protocol subversion");
 
             result.Status = buffer.Get8(ref index, "Getting status code");
 
@@ -237,7 +240,7 @@
             return result;
         }
 
-        public static CdpPowerAvailable GetPowerAvailable(this byte [] buffer, ref int index, string operation)
+        internal static CdpPowerAvailable GetPowerAvailable(this byte [] buffer, ref int index, string operation)
         {
             var result = new CdpPowerAvailable();
             result.RequestId = buffer.Get16(ref index, "Reading request ID");
@@ -248,7 +251,7 @@
             return result;
         }
 
-        public static IPPrefix GetIPv4Prefix(this byte [] buffer, ref int index, string operation)
+        internal static IPPrefix GetIPv4Prefix(this byte [] buffer, ref int index, string operation)
         {
             var result = new IPPrefix();
             result.Network = new IPAddress(buffer.GetSubbuffer(ref index, 4, "Reading the network of a prefix"));
